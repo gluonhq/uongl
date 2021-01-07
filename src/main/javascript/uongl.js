@@ -18,16 +18,41 @@ function native_com_sun_glass_ui_web_WebWindow__setFocusable(ptr, f) {
 }
 
 function native_com_sun_glass_ui_web_WebWindow__setBackground(ptr, r, g, b) {
-    console.log("[UONGL] setFocusable, ptr = " + ptr+" and r = " +r+", g = " +g+", b = " +b);
-var red = 256 * r;
-var green = 256 * g;
-var blue = 256*b;
-var canvas = document.getElementById("jfxcanvas");
-var ctx = canvas.getContext("2d");
-// Add behind elements.
-ctx.globalCompositeOperation = 'destination-over'
-// Now draw!
-ctx.fillStyle = 'color:rgb(red, green, blue)';
-ctx.fillRect(0, 0, canvas.width, canvas.height);
+    console.log("[UONGL] setBGColor, ptr = " + ptr+" and r = " +r+", g = " +g+", b = " +b);
+    var red = 256 * r;
+    var green = 256 * g;
+    var blue = 256*b;
+    var canvas = document.getElementById("jfxcanvas");
+    var ctx = canvas.getContext("2d");
+    ctx.globalCompositeOperation = 'destination-over'
+    ctx.fillStyle = 'rgb('+red+','+ green+','+ blue+')';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function native_com_sun_prism_es2_GLContext_nBindFBO(nativeCtxInfo, nativeFBOID) {
+    console.log("[UONGL] nBindFBO");
+}
+
+function native_com_sun_glass_ui_web_WebWindow__setMinimumSize(ptr, width, height) {
+    console.log("[UONGL] setMinimumSize to "+ width+", " + height);
+}
+
+function native_com_sun_glass_ui_web_WebWindow__setMaximumSize(ptr, width, height) {
+    console.log("[UONGL] setMaximumSize to "+ width+", " + height);
+}
+
+function native_com_sun_glass_ui_web_WebWindow__setView(ptr, view) {
+    console.log("[UONGL] setView to "+ view);
+}
+
+function native_com_sun_glass_ui_web_WebGLView__setParent(ptr, parentptr) {
+    console.log("[UONGL] setParentPtr ");
+}
+
+function native_com_sun_prism_es2_GLContext_nEnableVertexAttributes(){
+    console.log("[UONGL] nEnableVertexAttr ");
+}
+function native_com_sun_prism_es2_GLContext_nCreateIndexBuffer16 () {
+    console.log("[UONGL] ncreateIndexBuffer16 ");
 }
 
