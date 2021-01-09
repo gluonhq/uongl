@@ -8,6 +8,12 @@ function wgl() {
     return gl;
 }
 
+function buff(p) {
+    bufferIdx++;
+    buffers[bufferIdx] = p;
+    return bufferIdx;
+}
+
 function native_com_sun_prism_es2_GLFactory_nIsGLExtensionSupported(ptr, a) {
     console.log("NISGLEXTENSIONSUPPOERTED!!! a = " + a);
     return true;
@@ -152,6 +158,22 @@ function native_com_sun_prism_es2_GLContext_nBindTexture(nativeCtxInfo, texId) {
     gl.bindTexture(gl.TEXTURE_2DTEXTURE_2D, tex);
 }
 
+function native_com_sun_prism_es2_GLContext_nClearBuffers (ctxInfo,
+        red, green, blue, alpha,
+        clearColor, clearDepth, ignoreScissor){
+console.log("UONGL clearBuffers, cc = " + clearColor+", cd = " + clearDepth+", is = " + ignoreScissor);
+console.log("TODO!!!");
+    var gl = wgl();
+    var clearBIT = null;
+    if (clearColor) {
+        gl.clearColor(red, green, blue, alpha);
+        clearBIT = gl.COLOR_BUFFER_BUT;
+    }
+    if (clearBIT != null) {
+        gl.clear(clearBIT);
+    }
+}
+
 function native_com_sun_prism_es2_GLContext_nCreateFBO (ptr, texId) {
     console.log("[UONGL] ncreateFBO ");
     var gl = wgl();
@@ -193,6 +215,24 @@ function native_com_sun_prism_es2_GLContext_nEnableVertexAttributes(ptr){
         gl.enableVertexAttribArray(i);
     }
     console.log("[UONGL] nEnableVertexAttr DONE");
+}
+
+function native_com_sun_prism_es2_GLContext_nGenAndBindTexture(ptr){
+    var gl = wgl();
+    var texture = gl.createTexture();
+    var tid = buff(texture);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    return tid;
+
+}
+function native_com_sun_prism_es2_GLContext_nPixelStorei(pname, value) {
+    var gl = wgl();
+    var name = null;
+    if (pname == 60) name = gl.UNPACK_ALIGNMENT;
+    if (pname == 61) name = gl.UNPACK_ROW_LENGTH;
+    if (pname == 62) name = gl.UNPACK_SKIP_PIXELS;
+    if (pname == 63) name = gl.UNPACK_SKIP_ROWS;
+    gl.pixelStorei(name, value);
 }
 
 function native_com_sun_prism_es2_GLContext_nSetIndexBuffer(ptr, bufferId ) {
