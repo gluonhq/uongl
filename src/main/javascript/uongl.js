@@ -18,41 +18,11 @@ function native_com_sun_prism_es2_GLFactory_nIsGLExtensionSupported(ptr, a) {
     console.log("NISGLEXTENSIONSUPPOERTED!!! a = " + a);
     return true;
 }
-console.log("WELCOME UONGL2!");
 
 function native_com_sun_glass_ui_web_WebApplication__invokeAndWait(r) {
     console.log("INVOKEANDWAIT!" + r);
     r.run__V();
     console.log("INVOKEANDWAIT DONE!" + r);
-}
-
-function native_com_sun_prism_es2_WebGLContext_getIntParam(param) {
-    var gl = wgl();
-console.log("[UONGL] getIntParam for " + param) ;
-    var answer = 1;
-    if (param == 120) {
-        answer = gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS);
-    }
-    if (param == 122) {
-        answer = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
-    }
-    if (param == 123) {
-        answer = gl.getParameter(gl.MAX_TEXTURE_SIZE);
-    }
-    if (param == 124) {
-        answer = gl.getParameter(gl.MAX_VERTEX_ATTRIBS);
-    }
-    if (param == 125) {
-        answer = 4 * gl.getParameter(gl.MAX_VARYING_VECTORS);
-    }
-    if (param == 127) {
-        answer = gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS);
-    }
-    if (param == 128) {
-        answer = 4 * gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS);
-    }
-    console.log("[UONGL] getIntParam asked for " + param+" results in " + answer);
-    return answer;
 }
 
 // ------------
@@ -155,7 +125,7 @@ function native_com_sun_prism_es2_GLContext_nBindFBO(nativeCtxInfo, nativeFBOID)
 function native_com_sun_prism_es2_GLContext_nBindTexture(nativeCtxInfo, texId) {
     var gl = wgl();
     var tex = buffers[texId];
-    gl.bindTexture(gl.TEXTURE_2DTEXTURE_2D, tex);
+    gl.bindTexture(gl.TEXTURE_2D, tex);
 }
 
 function native_com_sun_prism_es2_GLContext_nClearBuffers (ctxInfo,
@@ -242,14 +212,53 @@ function native_com_sun_prism_es2_GLContext_nSetIndexBuffer(ptr, bufferId ) {
     console.log("[UONGL] nSetIndexBuffer done to buffer "+ buffer);
 }
 
+function native_com_sun_prism_es2_GLContext_nTexSubImage2D0() {
+    console.log("[UONGL] nTexSubImage2D0 NOT IMPLEMENTED ");
+}
+
+function native_com_sun_prism_es2_GLContext_nTexImage2D0 () {
+    console.log("[UONGL] nTexImage2D0 NOT IMPLEMENTED ");
+}
 function native_com_sun_prism_es2_GLContext_nUpdateViewport() {
-    console.log("[UONGL] nUpdateViewport ");
+    console.log("[UONGL] nUpdateViewport NOT IMPLEMENTED");
+}
+
+function native_com_sun_prism_es2_GLContext_nTexParamsMinMax() {
+    console.log("[UONGL] nTexParamsMinMax NOT IMPLEMENTED");
 }
 
 // ------------
 // WEBGLCONTEXT 
 // ------------
 
+function native_com_sun_prism_es2_WebGLContext_getIntParam(param) {
+    var gl = wgl();
+console.log("[UONGL] getIntParam for " + param) ;
+    var answer = 1;
+    if (param == 120) {
+        answer = gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS);
+    }
+    if (param == 122) {
+        answer = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
+    }
+    if (param == 123) {
+        answer = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+    }
+    if (param == 124) {
+        answer = gl.getParameter(gl.MAX_VERTEX_ATTRIBS);
+    }
+    if (param == 125) {
+        answer = 4 * gl.getParameter(gl.MAX_VARYING_VECTORS);
+    }
+    if (param == 127) {
+        answer = gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS);
+    }
+    if (param == 128) {
+        answer = 4 * gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS);
+    }
+    console.log("[UONGL] getIntParam asked for " + param+" results in " + answer);
+    return answer;
+}
 function native_com_sun_prism_es2_WebGLContext_nGetNativeHandle(nativeCtxInfo) {
     console.log("[UONGL] WebGLContext_nGetNativeHandle always return 1");
     return 1;
