@@ -1,7 +1,10 @@
 console.log("WELCOME UONGL!");
+var buffers = [];
+var bufferIdx = 0;
+
 function wgl() {
     var canvas = document.getElementById("jfxcanvas");
-    var gl = canvas.getContext("webgl");
+    var gl = canvas.getContext("webgl2");
     return gl;
 }
 
@@ -19,16 +22,31 @@ function native_com_sun_glass_ui_web_WebApplication__invokeAndWait(r) {
 
 function native_com_sun_prism_es2_WebGLContext_getIntParam(param) {
     var gl = wgl();
-console.log("MT = " + gl.MAX_TEXTURE_SIZE) ;
-    if (param == 123) {
-    console.log("[UONGL] getIntParam asked for MAX_TEXTURE " + param);
-        var answer = gl.getParameter(gl.MAX_TEXTURE_SIZE);
-        // return 128*1024*1024;
-    console.log("[UONGL] getIntParam will return " + answer);
-        return answer;
+console.log("[UONGL] getIntParam for " + param) ;
+    var answer = 1;
+    if (param == 120) {
+        answer = gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS);
     }
-    console.log("[UONGL] getIntParam asked for " + param);
-    return 1;
+    if (param == 122) {
+        answer = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
+    }
+    if (param == 123) {
+        answer = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+    }
+    if (param == 124) {
+        answer = gl.getParameter(gl.MAX_VERTEX_ATTRIBS);
+    }
+    if (param == 125) {
+        answer = 4 * gl.getParameter(gl.MAX_VARYING_VECTORS);
+    }
+    if (param == 127) {
+        answer = gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS);
+    }
+    if (param == 128) {
+        answer = 4 * gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS);
+    }
+    console.log("[UONGL] getIntParam asked for " + param+" results in " + answer);
+    return answer;
 }
 
 // ------------
@@ -57,7 +75,7 @@ function native_com_sun_glass_ui_web_WebGLView__getY(ptr) {
 function native_com_sun_glass_ui_web_WebWindow__setAlpha(ptr, alpha) {
     console.log("[UONGL] setApha, ptr = " + ptr+" and alpha = " +alpha);
     var canvas = document.getElementById("jfxcanvas");
-    var ctx = canvas.getContext("webgl");
+    var ctx = canvas.getContext("webgl2");
     ctx.globalAlpha = alpha;
 }
 
@@ -85,12 +103,6 @@ function native_com_sun_glass_ui_web_WebWindow__setBackground(ptr, r, g, b) {
     var gl = wgl();
     var canvas = document.getElementById("jfxcanvas");
     canvas.style.backgroundColor = 'rgb('+red+','+ green+','+ blue+')';
-/*
-    var ctx = canvas.getContext("webgl");
-    ctx.globalCompositeOperation = 'destination-over'
-    ctx.fillStyle = 'rgb('+red+','+ green+','+ blue+')';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-*/
 }
 
 function native_com_sun_glass_ui_web_WebWindow__setVisible(ptr, vis) {
@@ -120,7 +132,7 @@ function native_com_sun_glass_ui_web_WebGLView__setParent(ptr, parentptr) {
 function native_com_sun_prism_es2_GLContext_nActiveTexture(nativeCtxInfo, texUnit) {
     console.log("[UONGL] nActiveTexture ctx = "+nativeCtxInfo+", id = "+texUnit);
     var gl = wgl();
-    gl.activeTexture(gl.TEXTURE+texUnit);
+    gl.activeTexture(gl.TEXTURE0+texUnit);
 }
 
 function native_com_sun_prism_es2_GLContext_nBindFBO(nativeCtxInfo, nativeFBOID) {
@@ -129,20 +141,50 @@ function native_com_sun_prism_es2_GLContext_nBindFBO(nativeCtxInfo, nativeFBOID)
     if (nativeFBOID == 0) {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     } else {
-        gl.bindFramebuffer(gl.FRAMEBUFFER, nativeFBOID);
+        var buffer = buffers[nativeFBOID];
+        gl.bindFramebuffer(gl.FRAMEBUFFER, buffer);
     }
 }
 
-function native_com_sun_prism_es2_GLContext_nCreateFBO () {
+function native_com_sun_prism_es2_GLContext_nBindTexture(nativeCtxInfo, texId) {
+    var gl = wgl();
+    var tex = buffers[texId];
+    gl.bindTexture(gl.TEXTURE_2DTEXTURE_2D, tex);
+}
+
+function native_com_sun_prism_es2_GLContext_nCreateFBO (ptr, texId) {
     console.log("[UONGL] ncreateFBO ");
+    var gl = wgl();
+    var buffer = gl.createFramebuffer();
+    var tex = buffers[texId];
+    gl.bindFramebuffer(gl.FRAMEBUFFER, buffer)
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+console.log("[UONGL] createFBO will return buffer " + buffer);
+    bufferIdx++;
+    buffers[bufferIdx] = buffer;
+    return bufferIdx;
 }
 
-function native_com_sun_prism_es2_GLContext_nCreateIndexBuffer16 () {
-    console.log("[UONGL] ncreateIndexBuffer16 ");
+function native_com_sun_prism_es2_GLContext_nCreateIndexBuffer16 (ptr, data, n) {
+    var gl = wgl();
+    var buffer = gl.createBuffer();
+    console.log("[UONGL] ncreateIndexBuffer16, n = "+n);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, data, gl.STATIC_DRAW);
+    console.log("[UONGL] BUFFER will return " + buffer);
+    bufferIdx++;
+    buffers[bufferIdx] = buffer;
+    return bufferIdx;
 }
 
-function native_com_sun_prism_es2_GLContext_nCreateTexture () {
-    console.log("[UONGL] ncreateTexture ");
+function native_com_sun_prism_es2_GLContext_nCreateTexture (ptr, width, height) {
+    var gl = wgl();
+    console.log("[UONGL] ncreateTexture w = "+width+", h = "+height);
+    var texture = gl.createTexture();
+    // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    bufferIdx++;
+    buffers[bufferIdx] = texture;
+    return bufferIdx;
 }
 
 function native_com_sun_prism_es2_GLContext_nEnableVertexAttributes(ptr){
@@ -153,8 +195,11 @@ function native_com_sun_prism_es2_GLContext_nEnableVertexAttributes(ptr){
     console.log("[UONGL] nEnableVertexAttr DONE");
 }
 
-function native_com_sun_prism_es2_GLContext_nSetIndexBuffer() {
-    console.log("[UONGL] nSetIndexBuffer ");
+function native_com_sun_prism_es2_GLContext_nSetIndexBuffer(ptr, bufferId ) {
+    var gl = wgl();
+    var buffer = buffers[bufferId];
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
+    console.log("[UONGL] nSetIndexBuffer done to buffer "+ buffer);
 }
 
 function native_com_sun_prism_es2_GLContext_nUpdateViewport() {
@@ -179,5 +224,3 @@ function native_com_sun_prism_es2_WebGLContext_nInitialize(nativeDInfo, nativePF
 function native_com_sun_prism_es2_WebGLContext_nMakeCurrent() {
     console.log("[UONGL] WebGLContext_nMakeCurrent NO-OP");
 }
-
-
