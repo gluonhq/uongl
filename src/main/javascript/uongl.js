@@ -129,6 +129,12 @@ console.log("UONGL bindTexture with id "+texId);
     gl.bindTexture(gl.TEXTURE_2D, tex);
 }
 
+function native_com_sun_prism_es2_GLContext_nBlendFunc(ptr, cf, df) {
+console.log("UONGL bbendFunv with c = "+cf+" and d = " + df);
+    var gl = wgl();
+    gl.blendFunc(cf, df);
+}
+
 function native_com_sun_prism_es2_GLContext_nClearBuffers (ctxInfo,
         red, green, blue, alpha,
         clearColor, clearDepth, ignoreScissor){
@@ -272,7 +278,7 @@ function native_com_sun_prism_es2_GLContext_nSetIndexBuffer(ptr, bufferId ) {
 function native_com_sun_prism_es2_GLContext_nUniformMatrix4fv(ptr, loc, transpose, values ) {
     var gl = wgl();
     console.log("[UONGL] nUniformMatrix4fv loc = "+ loc);
-    gl.uniformMatrix4fv(loc, 1, transpose, values);
+    gl.uniformMatrix4fv(loc, false, values);
     console.log("[UONGL] nUniformMatrix4fv DONE ");
 }
 
