@@ -123,6 +123,7 @@ function native_com_sun_prism_es2_GLContext_nBindFBO(nativeCtxInfo, nativeFBOID)
 }
 
 function native_com_sun_prism_es2_GLContext_nBindTexture(nativeCtxInfo, texId) {
+console.log("UONGL bindTexture with id "+texId);
     var gl = wgl();
     var tex = buffers[texId];
     gl.bindTexture(gl.TEXTURE_2D, tex);
@@ -142,6 +143,25 @@ console.log("TODO!!!");
     if (clearBIT != null) {
         gl.clear(clearBIT);
     }
+}
+
+function native_com_sun_prism_es2_GLContext_nCompileShader(ptr, src, vert) {
+    console.log("[UONGL] compile shader ");
+    var gl = wgl();
+    var shader;
+    if (vert) {
+        shader = gl.createShader(gl.VERTEX_SHADER);
+    } else {
+        shader = gl.createShader(gl.FRAGMENT_SHADER);
+    }
+    gl.shaderSource(shader, src);
+    gl.compileShader(shader);
+    var msg = gl.getShaderInfoLog(shader);
+    if (msg.length >0) {
+console.log("ERROR! " + msg);
+    }
+    answer = buff(shader);
+    return answer;
 }
 
 function native_com_sun_prism_es2_GLContext_nCreateFBO (ptr, texId) {
@@ -169,14 +189,40 @@ function native_com_sun_prism_es2_GLContext_nCreateIndexBuffer16 (ptr, data, n) 
     return bufferIdx;
 }
 
+function native_com_sun_prism_es2_GLContext_nCreateProgram(ptr, vertID, fragIDArr, numAttrs, attrs, indexs) {
+    var gl = wgl();
+    console.log("[UONGL] ncreateProgram");
+    var program = gl.createProgram();
+    var answer = buff(program);
+    var vertexShader = buffers[vertID];
+    gl.attachShader(program, vertexShader);
+    for (i = 0 ; i < fragIDArr.length; i++ ) {
+        var fragShader = buffers[fragIDArr[i]];
+        gl.attachShader(program, fragShader);
+    }
+    for (i = 0; i < numAttrs; i++) {
+console.log("[UONGL] bindAttribloc " + attrs[i]+" to " + indexs[i]);
+        gl.bindAttribLocation(program, indexs[i], attrs[i]);
+    }
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        var det = gl.getProgramInfoLog(program);
+        console.error("Error compiling shader: \n" + det);
+    } else {
+        console.log("[UONGL] shader program compiled!");
+    }
+    return answer;
+}
+
 function native_com_sun_prism_es2_GLContext_nCreateTexture (ptr, width, height) {
     var gl = wgl();
     console.log("[UONGL] ncreateTexture w = "+width+", h = "+height);
     var texture = gl.createTexture();
-    // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-    bufferIdx++;
-    buffers[bufferIdx] = texture;
-    return bufferIdx;
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(4 * width * height));
+    var answer = buff(texture);
+    console.log("[UONGL] ncreateTexture created texture with id " + answer);
+    return answer;
 }
 
 function native_com_sun_prism_es2_GLContext_nEnableVertexAttributes(ptr){
@@ -188,13 +234,24 @@ function native_com_sun_prism_es2_GLContext_nEnableVertexAttributes(ptr){
 }
 
 function native_com_sun_prism_es2_GLContext_nGenAndBindTexture(ptr){
+console.log("[UONGL] GenAndBindTexture");
     var gl = wgl();
     var texture = gl.createTexture();
     var tid = buff(texture);
     gl.bindTexture(gl.TEXTURE_2D, texture);
+console.log("[UONGL] GenAndBindTexture created new texture with id " + tid);
     return tid;
 
 }
+
+function native_com_sun_prism_es2_GLContext_nGetUniformLocation(ptr, pid, val){
+console.log("[UONGL] GetUniformLocation for programId "+ pid+" and val = " + val);
+    var gl = wgl();
+    var answer = gl.getUniformLocation(buffers[pid], val);
+console.log("result = " + answer);
+    return answer;
+}
+
 function native_com_sun_prism_es2_GLContext_nPixelStorei(pname, value) {
     var gl = wgl();
     var name = null;
@@ -210,6 +267,20 @@ function native_com_sun_prism_es2_GLContext_nSetIndexBuffer(ptr, bufferId ) {
     var buffer = buffers[bufferId];
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
     console.log("[UONGL] nSetIndexBuffer done to buffer "+ buffer);
+}
+
+function native_com_sun_prism_es2_GLContext_nUniformMatrix4fv(ptr, loc, transpose, values ) {
+    var gl = wgl();
+    console.log("[UONGL] nUniformMatrix4fv loc = "+ loc);
+    gl.uniformMatrix4fv(loc, 1, transpose, values);
+    console.log("[UONGL] nUniformMatrix4fv DONE ");
+}
+
+function native_com_sun_prism_es2_GLContext_nUseProgram(ptr, programId ) {
+    console.log("[UONGL] nUseProgram with id "+ programId);
+    var gl = wgl();
+    var program = buffers[programId];
+    gl.useProgram(program);
 }
 
 function native_com_sun_prism_es2_GLContext_nTexSubImage2D0() {
