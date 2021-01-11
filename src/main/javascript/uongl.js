@@ -1,4 +1,10 @@
 console.log("WELCOME UONGL!");
+var FLOATS_PER_TC=2;
+var FLOATS_PER_VC=3;
+var FLOATS_PER_VERT=(FLOATS_PER_TC * 2 + FLOATS_PER_VC);
+var coordStride=4 * FLOATS_PER_VERT;
+var colorStride=4;
+
 var buffers = [];
 var bufferIdx = 0;
 
@@ -105,8 +111,8 @@ function native_com_sun_glass_ui_web_WebGLView__setParent(ptr, parentptr) {
 // GLCONTEXT 
 // ------------
 
-function native_com_sun_prism_es2_GLContext_nActiveTexture(nativeCtxInfo, texUnit) {
-    console.log("[UONGL] nActiveTexture ctx = "+nativeCtxInfo+", id = "+texUnit);
+function native_com_sun_prism_es2_GLContext_nActiveTexture(ptr, texUnit) {
+    console.log("[UONGL] nActiveTexture ctx = "+ptr+", id = "+texUnit);
     var gl = wgl();
     gl.activeTexture(gl.TEXTURE0+texUnit);
 }
@@ -143,7 +149,7 @@ console.log("TODO!!!");
     var gl = wgl();
     var clearBIT = null;
     if (clearColor) {
-        gl.clearColor(red, green, blue, alpha);
+        gl.clearColor(1, green, blue, alpha);
         clearBIT = gl.COLOR_BUFFER_BUT;
     }
     if (clearBIT != null) {
@@ -178,9 +184,8 @@ function native_com_sun_prism_es2_GLContext_nCreateFBO (ptr, texId) {
     gl.bindFramebuffer(gl.FRAMEBUFFER, buffer)
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
 console.log("[UONGL] createFBO will return buffer " + buffer);
-    bufferIdx++;
-    buffers[bufferIdx] = buffer;
-    return bufferIdx;
+    answer = buff(buffer);
+    return answer;
 }
 
 function native_com_sun_prism_es2_GLContext_nCreateIndexBuffer16 (ptr, data, n) {
@@ -231,6 +236,21 @@ function native_com_sun_prism_es2_GLContext_nCreateTexture (ptr, width, height) 
     return answer;
 }
 
+function native_com_sun_prism_es2_GLContext_nDrawIndexedQuads(ptr, numVertices, dataf, datab) {
+    var gl = wgl();
+    console.log("[UONGL] nDrawIndexedQuads nv = "+numVertices+", df = " + dataf.length+", db = " + datab.length);
+    gl.vertexAttribPointer(0, 3, gl.FLOAT, gl.FALSE, coordStride, dataf);
+    gl.vertexAttribPointer(2, 2, gl.FLOAT, gl.FALSE, coordStride, dataf + FLOATS_PER_VC);
+    gl.vertexAttribPointer(3, 2, gl.FLOAT, gl.FALSE, coordStride, dataf + FLOATS_PER_VC + FLOATS_PER_TC);
+    gl.vertexAttribPointer(1, 4, gl.UNSIGNED_BYTE, gl.TRUE, colorStride, datab);
+        // ctx->vbFloatData = pFloat;
+// ctx->vbByteData = pByte;
+    var numQuads = numVertices/4;
+gl.drawElements(gl.TRIANGLES, numQuads * 2 * 3, gl.UNSIGNED_SHORT, 0);
+    console.log("[UONGL] nDrawIndexedQuads done");
+
+}
+
 function native_com_sun_prism_es2_GLContext_nEnableVertexAttributes(ptr){
     var gl = wgl();
     for (i = 0; i < 4; i++) {
@@ -270,17 +290,56 @@ function native_com_sun_prism_es2_GLContext_nPixelStorei(pname, value) {
 
 function native_com_sun_prism_es2_GLContext_nSetIndexBuffer(ptr, bufferId ) {
     var gl = wgl();
+    console.log("[UONGL] nSetIndexBuffer ELEMENT_ARRAY_BUFFER to buffer with id "+ bufferId);
     var buffer = buffers[bufferId];
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
     console.log("[UONGL] nSetIndexBuffer done to buffer "+ buffer);
 }
 
+function native_com_sun_prism_es2_GLContext_nTexImage2D0(target, level, 
+ internalFormat, width, height, border, format, type,
+        pixels, pixelsByteOffset, useMipmap) {
+    var gl = wgl();
+    console.log("[UONGL] nTexImage2D0 pbo = "+ pixelsByteOffset);
+console.log("TARGET = " + target);
+console.log("LEVEL = " + level);
+console.log("FORMAT = " + format);
+console.log("IF = " + internalFormat);
+console.log("TYPE = " + type);
+    if (useMipmap) {
+        console.log("[UONGL] nTexImage2D0 MIPMAP!");
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+    }
+    gl.texImage2D(getTextureConstant(target), level, getTextureConstant(internalFormat), width, height, 0, getTextureConstant(format), getTextureConstant(type), pixels);
+    return true;
+}
 function native_com_sun_prism_es2_GLContext_nUniformMatrix4fv(ptr, loc, transpose, values ) {
     var gl = wgl();
     console.log("[UONGL] nUniformMatrix4fv loc = "+ loc);
     gl.uniformMatrix4fv(loc, false, values);
     console.log("[UONGL] nUniformMatrix4fv DONE ");
 }
+
+function native_com_sun_prism_es2_GLContext_nUpdateViewport(ptr, x, y, w, h) {
+    console.log("[UONGL] nUpdateViewport to "+x+", "+y+", "+w+", "+h);
+    var gl =wgl();
+    gl.viewport(x,y,w,h); 
+    console.log("[UONGL] nUpdateViewport to "+x+", "+y+", "+w+", "+h+" DONE");
+}
+
+function native_com_sun_prism_es2_GLContext_nUpdateWrapState(ptr, texID, wrapMode) {
+    var gl = wgl();
+    var modeS = gl.REPEAT;
+    var modeT = gl.REPEAT;
+    if (wrapMode = 101) {
+        modeS = gl.CLAMP_TO_EDGE;
+        modeT = gl.CLAMP_TO_EDGE;
+    }
+    console.log("[UONGL] nUpdateWrapState mode = "+ wrapMode+" == " + modeS);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, modeS);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, modeT);
+}
+
 
 function native_com_sun_prism_es2_GLContext_nUseProgram(ptr, programId ) {
     console.log("[UONGL] nUseProgram with id "+ programId);
@@ -293,12 +352,6 @@ function native_com_sun_prism_es2_GLContext_nTexSubImage2D0() {
     console.log("[UONGL] nTexSubImage2D0 NOT IMPLEMENTED ");
 }
 
-function native_com_sun_prism_es2_GLContext_nTexImage2D0 () {
-    console.log("[UONGL] nTexImage2D0 NOT IMPLEMENTED ");
-}
-function native_com_sun_prism_es2_GLContext_nUpdateViewport() {
-    console.log("[UONGL] nUpdateViewport NOT IMPLEMENTED");
-}
 
 function native_com_sun_prism_es2_GLContext_nTexParamsMinMax() {
     console.log("[UONGL] nTexParamsMinMax NOT IMPLEMENTED");
@@ -349,4 +402,27 @@ function native_com_sun_prism_es2_WebGLContext_nInitialize(nativeDInfo, nativePF
 
 function native_com_sun_prism_es2_WebGLContext_nMakeCurrent() {
     console.log("[UONGL] WebGLContext_nMakeCurrent NO-OP");
+}
+
+function getTextureConstant(src) {
+    var gl = wgl();
+
+    if (src == 20) return gl.FLOAT;
+    if (src == 21) return gl.UNSIGNED_BYTE;
+    if (src == 22) return gl.UNSIGNED_INT_8_8_8_8_REV;
+    if (src == 23) return gl.UNSIGNED_INT_8_8_8_8;
+    if (src == 40) return gl.RGBA;
+    if (src == 41) return gl.BGRA;
+    if (src == 42) return gl.RGB;
+    if (src == 43) return gl.LUMINANCE;
+    if (src == 44) return gl.ALPHA;
+    if (src == 45) return gl.RGBA32F;
+    if (src == 50) return gl.TEXTURE_2D;
+    if (src == 51) return gl.TEXTURE_BINDING_2D;
+    if (src == 52) return gl.NEAREST;
+    if (src == 53) return gl.LINEAR;
+    if (src == 54) return gl.NEAREST_MIPMAP_NEAREST;
+    if (src == 55) return gl.LINEAR_MIPMAP_LINEAR;
+    console.log("NO TEXTURE CONSTANT FOUND for "+src);
+    return -1;
 }
