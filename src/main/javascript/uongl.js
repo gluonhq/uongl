@@ -22,6 +22,8 @@ function buff(p) {
 
 function native_com_sun_prism_es2_GLFactory_nIsGLExtensionSupported(ptr, a) {
     console.log("NISGLEXTENSIONSUPPOERTED!!! a = " + a);
+   if (a == "GL_EXT_texture_format_BGRA8888") return false;
+    console.log("assume true");
     return true;
 }
 
@@ -115,6 +117,7 @@ function native_com_sun_prism_es2_GLContext_nActiveTexture(ptr, texUnit) {
     console.log("[UONGL] nActiveTexture ctx = "+ptr+", id = "+texUnit);
     var gl = wgl();
     gl.activeTexture(gl.TEXTURE0+texUnit);
+    glErr(gl);
 }
 
 function native_com_sun_prism_es2_GLContext_nBindFBO(nativeCtxInfo, nativeFBOID) {
@@ -126,6 +129,7 @@ function native_com_sun_prism_es2_GLContext_nBindFBO(nativeCtxInfo, nativeFBOID)
         var buffer = buffers[nativeFBOID];
         gl.bindFramebuffer(gl.FRAMEBUFFER, buffer);
     }
+    glErr(gl);
 }
 
 function native_com_sun_prism_es2_GLContext_nBindTexture(nativeCtxInfo, texId) {
@@ -133,12 +137,14 @@ console.log("UONGL bindTexture with id "+texId);
     var gl = wgl();
     var tex = buffers[texId];
     gl.bindTexture(gl.TEXTURE_2D, tex);
+    glErr(gl);
 }
 
 function native_com_sun_prism_es2_GLContext_nBlendFunc(ptr, cf, df) {
 console.log("UONGL bbendFunv with c = "+cf+" and d = " + df);
     var gl = wgl();
     gl.blendFunc(cf, df);
+    glErr(gl);
 }
 
 function native_com_sun_prism_es2_GLContext_nClearBuffers (ctxInfo,
@@ -155,6 +161,7 @@ console.log("TODO!!!");
     if (clearBIT != null) {
         gl.clear(clearBIT);
     }
+    glErr(gl);
 }
 
 function native_com_sun_prism_es2_GLContext_nCompileShader(ptr, src, vert) {
@@ -173,6 +180,7 @@ function native_com_sun_prism_es2_GLContext_nCompileShader(ptr, src, vert) {
 console.log("ERROR! " + msg);
     }
     answer = buff(shader);
+    glErr(gl);
     return answer;
 }
 
@@ -185,6 +193,7 @@ function native_com_sun_prism_es2_GLContext_nCreateFBO (ptr, texId) {
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
 console.log("[UONGL] createFBO will return buffer " + buffer);
     answer = buff(buffer);
+    glErr(gl);
     return answer;
 }
 
@@ -197,6 +206,7 @@ function native_com_sun_prism_es2_GLContext_nCreateIndexBuffer16 (ptr, data, n) 
     console.log("[UONGL] BUFFER will return " + buffer);
     bufferIdx++;
     buffers[bufferIdx] = buffer;
+    glErr(gl);
     return bufferIdx;
 }
 
@@ -222,6 +232,7 @@ console.log("[UONGL] bindAttribloc " + attrs[i]+" to " + indexs[i]);
     } else {
         console.log("[UONGL] shader program compiled!");
     }
+    glErr(gl);
     return answer;
 }
 
@@ -233,6 +244,7 @@ function native_com_sun_prism_es2_GLContext_nCreateTexture (ptr, width, height) 
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(4 * width * height));
     var answer = buff(texture);
     console.log("[UONGL] ncreateTexture created texture with id " + answer);
+    glErr(gl);
     return answer;
 }
 
@@ -248,6 +260,7 @@ function native_com_sun_prism_es2_GLContext_nDrawIndexedQuads(ptr, numVertices, 
     var numQuads = numVertices/4;
 gl.drawElements(gl.TRIANGLES, numQuads * 2 * 3, gl.UNSIGNED_SHORT, 0);
     console.log("[UONGL] nDrawIndexedQuads done");
+    glErr(gl);
 
 }
 
@@ -257,6 +270,7 @@ function native_com_sun_prism_es2_GLContext_nEnableVertexAttributes(ptr){
         gl.enableVertexAttribArray(i);
     }
     console.log("[UONGL] nEnableVertexAttr DONE");
+    glErr(gl);
 }
 
 function native_com_sun_prism_es2_GLContext_nGenAndBindTexture(ptr){
@@ -266,6 +280,7 @@ console.log("[UONGL] GenAndBindTexture");
     var tid = buff(texture);
     gl.bindTexture(gl.TEXTURE_2D, texture);
 console.log("[UONGL] GenAndBindTexture created new texture with id " + tid);
+    glErr(gl);
     return tid;
 
 }
@@ -275,6 +290,7 @@ console.log("[UONGL] GetUniformLocation for programId "+ pid+" and val = " + val
     var gl = wgl();
     var answer = gl.getUniformLocation(buffers[pid], val);
 console.log("result = " + answer);
+    glErr(gl);
     return answer;
 }
 
@@ -286,6 +302,7 @@ function native_com_sun_prism_es2_GLContext_nPixelStorei(pname, value) {
     if (pname == 62) name = gl.UNPACK_SKIP_PIXELS;
     if (pname == 63) name = gl.UNPACK_SKIP_ROWS;
     gl.pixelStorei(name, value);
+    glErr(gl);
 }
 
 function native_com_sun_prism_es2_GLContext_nSetIndexBuffer(ptr, bufferId ) {
@@ -294,6 +311,7 @@ function native_com_sun_prism_es2_GLContext_nSetIndexBuffer(ptr, bufferId ) {
     var buffer = buffers[bufferId];
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
     console.log("[UONGL] nSetIndexBuffer done to buffer "+ buffer);
+    glErr(gl);
 }
 
 function native_com_sun_prism_es2_GLContext_nTexImage2D0(target, level, 
@@ -311,6 +329,7 @@ console.log("TYPE = " + type);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
     }
     gl.texImage2D(getTextureConstant(target), level, getTextureConstant(internalFormat), width, height, 0, getTextureConstant(format), getTextureConstant(type), pixels);
+    glErr(gl);
     return true;
 }
 function native_com_sun_prism_es2_GLContext_nUniformMatrix4fv(ptr, loc, transpose, values ) {
@@ -318,6 +337,7 @@ function native_com_sun_prism_es2_GLContext_nUniformMatrix4fv(ptr, loc, transpos
     console.log("[UONGL] nUniformMatrix4fv loc = "+ loc);
     gl.uniformMatrix4fv(loc, false, values);
     console.log("[UONGL] nUniformMatrix4fv DONE ");
+    glErr(gl);
 }
 
 function native_com_sun_prism_es2_GLContext_nUpdateViewport(ptr, x, y, w, h) {
@@ -325,6 +345,7 @@ function native_com_sun_prism_es2_GLContext_nUpdateViewport(ptr, x, y, w, h) {
     var gl =wgl();
     gl.viewport(x,y,w,h); 
     console.log("[UONGL] nUpdateViewport to "+x+", "+y+", "+w+", "+h+" DONE");
+    glErr(gl);
 }
 
 function native_com_sun_prism_es2_GLContext_nUpdateWrapState(ptr, texID, wrapMode) {
@@ -338,6 +359,7 @@ function native_com_sun_prism_es2_GLContext_nUpdateWrapState(ptr, texID, wrapMod
     console.log("[UONGL] nUpdateWrapState mode = "+ wrapMode+" == " + modeS);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, modeS);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, modeT);
+    glErr(gl);
 }
 
 
@@ -346,6 +368,7 @@ function native_com_sun_prism_es2_GLContext_nUseProgram(ptr, programId ) {
     var gl = wgl();
     var program = buffers[programId];
     gl.useProgram(program);
+    glErr(gl);
 }
 
 function native_com_sun_prism_es2_GLContext_nTexSubImage2D0() {
@@ -425,4 +448,13 @@ function getTextureConstant(src) {
     if (src == 55) return gl.LINEAR_MIPMAP_LINEAR;
     console.log("NO TEXTURE CONSTANT FOUND for "+src);
     return -1;
+}
+
+function glErr(gl) {
+    var err = gl.getError();
+    if (err!= 0) {
+        console.log("GL ERROR!");
+        console.error("WE HAVE a GL ERROR");
+        throw new Error("gl-error");
+    }
 }
