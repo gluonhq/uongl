@@ -201,8 +201,9 @@ function native_com_sun_prism_es2_GLContext_nCreateIndexBuffer16 (ptr, data, n) 
     var gl = wgl();
     var buffer = gl.createBuffer();
     console.log("[UONGL] ncreateIndexBuffer16, n = "+n);
+    var sba = new Uint16Array(data);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, data, gl.STATIC_DRAW);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, sba, gl.STATIC_DRAW);
     console.log("[UONGL] BUFFER will return " + buffer);
     bufferIdx++;
     buffers[bufferIdx] = buffer;
