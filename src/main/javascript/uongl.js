@@ -1,8 +1,9 @@
 console.log("WELCOME UONGL!");
+
 var FLOATS_PER_TC=2 * 4;
 var FLOATS_PER_VC=3 * 4;
 var FLOATS_PER_VERT=(FLOATS_PER_TC * 2 + FLOATS_PER_VC);
-var coordStride=4 * FLOATS_PER_VERT;
+var coordStride= FLOATS_PER_VERT;
 var colorStride=4;
 
 var buffers = [];
@@ -86,7 +87,7 @@ function native_com_sun_glass_ui_web_WebWindow__setBackground(ptr, r, g, b) {
     var blue = 256*b;
     var gl = wgl();
     var canvas = document.getElementById("jfxcanvas");
-    // canvas.style.backgroundColor = 'rgb('+red+','+ green+','+ blue+')';
+    canvas.style.backgroundColor = 'rgb('+red+','+ green+','+ blue+')';
 }
 
 function native_com_sun_glass_ui_web_WebWindow__setVisible(ptr, vis) {
@@ -244,6 +245,8 @@ function native_com_sun_prism_es2_GLContext_nCreateTexture (ptr, width, height) 
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(4 * width * height));
     var answer = buff(texture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
     console.log("[UONGL] ncreateTexture created texture with id " + answer);
     glErr(gl);
     return answer;
@@ -256,17 +259,13 @@ function native_com_sun_prism_es2_GLContext_nDrawIndexedQuads(ptr, numVertices, 
     var rawFloatBuffer = new Float32Array(dataf);
     gl.bindBuffer(gl.ARRAY_BUFFER, floatBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, rawFloatBuffer, gl.STATIC_DRAW);
-    // gl.vertexAttribPointer(0, 3, gl.FLOAT, gl.FALSE, coordStride, dataf);
-    // gl.vertexAttribPointer(2, 2, gl.FLOAT, gl.FALSE, coordStride, dataf + FLOATS_PER_VC);
-    // gl.vertexAttribPointer(3, 2, gl.FLOAT, gl.FALSE, coordStride, dataf + FLOATS_PER_VC + FLOATS_PER_TC);
     gl.vertexAttribPointer(0, 3, gl.FLOAT, gl.FALSE, coordStride, 0);
     gl.vertexAttribPointer(2, 2, gl.FLOAT, gl.FALSE, coordStride, FLOATS_PER_VC);
-    gl.vertexAttribPointer(3, 2, gl.FLOAT, gl.FALSE, coordStride, FLOATS_PER_VC + FLOATS_PER_TC);
+    gl.vertexAttribPointer(3, 2, gl.FLOAT, gl.FALSE, coordStride, (FLOATS_PER_VC + FLOATS_PER_TC));
     var byteBuffer = gl.createBuffer();
     var rawByteBuffer = new Uint8Array(datab);
     gl.bindBuffer(gl.ARRAY_BUFFER, byteBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, rawByteBuffer, gl.STATIC_DRAW);
-    // gl.vertexAttribPointer(1, 4, gl.UNSIGNED_BYTE, gl.TRUE, colorStride, datab);
     gl.vertexAttribPointer(1, 4, gl.UNSIGNED_BYTE, gl.TRUE, colorStride, 0);
         // ctx->vbFloatData = pFloat;
 // ctx->vbByteData = pByte;
