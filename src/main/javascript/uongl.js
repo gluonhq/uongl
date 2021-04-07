@@ -8,6 +8,8 @@ var colorStride=4;
 
 var buffers = [];
 var bufferIdx = 0;
+var scissorEnabled = false;
+var depthWritesEnabled = false;
 
 function wgl() {
     var canvas = document.getElementById("jfxcanvas");
@@ -152,15 +154,40 @@ function native_com_sun_prism_es2_GLContext_nClearBuffers (ctxInfo,
         red, green, blue, alpha,
         clearColor, clearDepth, ignoreScissor){
 console.log("UONGL clearBuffers, cc = " + clearColor+", cd = " + clearDepth+", is = " + ignoreScissor);
-console.log("TODO!!!");
+
     var gl = wgl();
-    var clearBIT = null;
-    if (clearColor) {
-        gl.clearColor(1, green, blue, alpha);
-        clearBIT = gl.COLOR_BUFFER_BUT;
+    if (ignoreScissor && scissorEnabled) {
+console.log("Scissor enabled, but we will ignore it");
+        // glClear() honors the current scissor, so disable it
+        // temporarily if ignoreScissor is true
+        gl.disable(gl.SCISSOR_TEST);
+    } else {
+console.log("no Scissor action needed");
     }
-    if (clearBIT != null) {
+
+    var clearBIT = 0;
+    if (clearColor) {
+        clearBIT = gl.COLOR_BUFFER_BUT;
+        gl.clearColor(red, green, blue, alpha);
+    }
+
+    if (clearDepth) {
+        clearBIT  = clearBIT| gl.DEPTH_BUFFER_BIT;
+        // also make sure depth writes are enabled for the clear operation
+        if (depthWritesEnabled) {
+            glDepthMask(gl.TRUE);
+        }
         gl.clear(clearBIT);
+        if (depthWritesEnabled) {
+            glDepthMask(gl.FALSE);
+        }
+    } else {
+        gl.clear(clearBIT);
+    }
+
+    if (ignoreScissor && scissorEnabled) {
+console.log("Scissor enabled, but we ignored it, restore now");
+        gl.enable(gl.SCISSOR_TEST);
     }
     glErr(gl);
 }
@@ -326,6 +353,19 @@ function native_com_sun_prism_es2_GLContext_nPixelStorei(pname, value) {
     if (pname == 63) name = gl.UNPACK_SKIP_ROWS;
     gl.pixelStorei(name, value);
     glErr(gl);
+}
+
+function native_com_sun_prism_es2_GLContext_nScissorTest(ctx, enable, x, y, w, h) {
+    console.log("scissortest, enable = " + enable+", x = " + x);
+    var gl = wgl();
+    if (enable == 1) {
+        gl.enable(gl.SCISSOR_TEST);
+        gl.scissor(x, y, w, h);
+        scissorEnabled = true;
+    } else {
+        gl.disable(gl.SCISSOR_TEST);
+        scissorEnabled = false;
+    }
 }
 
 function native_com_sun_prism_es2_GLContext_nSetIndexBuffer(ptr, bufferId ) {
