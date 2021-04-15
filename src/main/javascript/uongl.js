@@ -188,11 +188,11 @@ console.log("no Scissor action needed");
         clearBIT  = clearBIT| gl.DEPTH_BUFFER_BIT;
         // also make sure depth writes are enabled for the clear operation
         if (depthWritesEnabled) {
-            glDepthMask(gl.TRUE);
+            glDepthMask(true);
         }
         gl.clear(clearBIT);
         if (depthWritesEnabled) {
-            glDepthMask(gl.FALSE);
+            glDepthMask(false);
         }
     } else {
         gl.clear(clearBIT);
@@ -299,14 +299,14 @@ function native_com_sun_prism_es2_GLContext_nDrawIndexedQuads(ptr, numVertices, 
     var rawFloatBuffer = new Float32Array(dataf);
     gl.bindBuffer(gl.ARRAY_BUFFER, floatBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, rawFloatBuffer, gl.STATIC_DRAW);
-    gl.vertexAttribPointer(0, 3, gl.FLOAT, gl.FALSE, coordStride, 0);
-    gl.vertexAttribPointer(2, 2, gl.FLOAT, gl.FALSE, coordStride, FLOATS_PER_VC);
-    gl.vertexAttribPointer(3, 2, gl.FLOAT, gl.FALSE, coordStride, (FLOATS_PER_VC + FLOATS_PER_TC));
+    gl.vertexAttribPointer(0, 3, gl.FLOAT, false, coordStride, 0);
+    gl.vertexAttribPointer(2, 2, gl.FLOAT, false, coordStride, FLOATS_PER_VC);
+    gl.vertexAttribPointer(3, 2, gl.FLOAT, false, coordStride, (FLOATS_PER_VC + FLOATS_PER_TC));
     var byteBuffer = gl.createBuffer();
     var rawByteBuffer = new Uint8Array(datab);
     gl.bindBuffer(gl.ARRAY_BUFFER, byteBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, rawByteBuffer, gl.STATIC_DRAW);
-    gl.vertexAttribPointer(1, 4, gl.UNSIGNED_BYTE, gl.TRUE, colorStride, 0);
+    gl.vertexAttribPointer(1, 4, gl.UNSIGNED_BYTE, true, colorStride, 0);
         // ctx->vbFloatData = pFloat;
 // ctx->vbByteData = pByte;
     var numQuads = numVertices/4;
