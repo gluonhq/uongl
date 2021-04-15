@@ -1,5 +1,7 @@
 console.log("WELCOME UONGL!");
 
+
+
 var FLOATS_PER_TC=2 * 4;
 var FLOATS_PER_VC=3 * 4;
 var FLOATS_PER_VERT=(FLOATS_PER_TC * 2 + FLOATS_PER_VC);
@@ -11,9 +13,19 @@ var bufferIdx = 0;
 var scissorEnabled = false;
 var depthWritesEnabled = false;
 
+var gl = null;
+
 function wgl() {
+    if (gl != null) {
+        return gl;
+    }
     var canvas = document.getElementById("jfxcanvas");
-    var gl = canvas.getContext("webgl2");
+    gl = canvas.getContext("webgl2");
+    function logGLCall(functionName, args) {
+       console.log("dbgl." + functionName + "(" +
+          WebGLDebugUtils.glFunctionArgsToString(functionName, args) + ")");
+    }
+    gl = WebGLDebugUtils.makeDebugContext(gl, undefined, logGLCall);
     return gl;
 }
 
@@ -26,6 +38,7 @@ function buff(p) {
 function native_com_sun_prism_es2_GLFactory_nIsGLExtensionSupported(ptr, a) {
     console.log("NISGLEXTENSIONSUPPOERTED!!! a = " + a);
    if (a == "GL_EXT_texture_format_BGRA8888") return false;
+   if (a == "GL_ARB_multisample") return false;
     console.log("assume true");
     return true;
 }
@@ -167,7 +180,7 @@ console.log("no Scissor action needed");
 
     var clearBIT = 0;
     if (clearColor) {
-        clearBIT = gl.COLOR_BUFFER_BUT;
+        clearBIT = gl.COLOR_BUFFER_BIT;
         gl.clearColor(red, green, blue, alpha);
     }
 
@@ -435,13 +448,27 @@ function native_com_sun_prism_es2_GLContext_nUseProgram(ptr, programId ) {
     glErr(gl);
 }
 
-function native_com_sun_prism_es2_GLContext_nTexSubImage2D0() {
-    console.log("[UONGL] nTexSubImage2D0 NOT IMPLEMENTED ");
+function native_com_sun_prism_es2_GLContext_nTexSubImage2D0(target, level,
+        xoffset, yoffset, width, height, format, type, pixels, pixelsByteOffset) {
+    var gl = wgl();
+    var ptr = pixels.fld_java_nio_ByteBuffer_data;
+    var rawUInt8Buffer = new Uint8Array(ptr);
+    var gFormat = getConstant(format);
+    var gTarget = getConstant(target);
+    var gType = getConstant(type);
+    gl.texSubImage2D(gTarget,  level,
+            xoffset, yoffset,
+            width, height, gFormat,
+            gType, rawUInt8Buffer);
 }
 
 
-function native_com_sun_prism_es2_GLContext_nTexParamsMinMax() {
-    console.log("[UONGL] nTexParamsMinMax NOT IMPLEMENTED");
+function native_com_sun_prism_es2_GLContext_nTexParamsMinMax(min, max) {
+    var gl = wgl();
+    var param = getConstant(min);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, param);
+    param = getConstant(max);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, param);
 }
 
 // ------------
@@ -483,7 +510,14 @@ function native_com_sun_prism_es2_WebGLContext_nGetNativeHandle(nativeCtxInfo) {
 
 function native_com_sun_prism_es2_WebGLContext_nInitialize(nativeDInfo, nativePFInfo,
             nativeshareCtxHandle, vSyncRequest) {
-    console.log("[UONGL] WebGLContext_nInitialize always return 1");
+    console.log("[UONGL] WebGLContext_nInitialize init and then return 1");
+    var gl = wgl();
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.depthMask(false);
+    gl.disable(gl.DEPTH_TEST);
+    gl.clearColor(0,0,0,0);
+    glErr(gl);
     return 1;
 }
 
@@ -493,6 +527,7 @@ function native_com_sun_prism_es2_WebGLContext_nMakeCurrent() {
 
 function getConstant(src) {
     var gl = wgl();
+    var answer = -1;
     if (src ==0) return gl.ZERO;
     if (src ==1) return gl.ONE;
     if (src ==2) return gl.SRC_COLOR;
@@ -510,10 +545,11 @@ function getConstant(src) {
     if (src ==14) return gl.SRC_ALPHA_SATURATE;
     if (src == 20) return gl.FLOAT;
     if (src == 21) return gl.UNSIGNED_BYTE;
-    if (src == 22) return gl.UNSIGNED_INT_8_8_8_8_REV;
+    // if (src == 22) return gl.UNSIGNED_INT_8_8_8_8_REV;
+    if (src == 22) return gl.UNSIGNED_INT_2_10_10_10_REV;
     if (src == 23) return gl.UNSIGNED_INT_8_8_8_8;
     if (src == 40) return gl.RGBA;
-    if (src == 41) return gl.BGRA;
+    if (src == 41) answer = gl.BGRA;
     if (src == 42) return gl.RGB;
     if (src == 43) return gl.LUMINANCE;
     if (src == 44) return gl.ALPHA;
@@ -525,14 +561,27 @@ function getConstant(src) {
     if (src == 54) return gl.NEAREST_MIPMAP_NEAREST;
     if (src == 55) return gl.LINEAR_MIPMAP_LINEAR;
     console.log("NO TEXTURE CONSTANT FOUND for "+src);
-    return -1;
+    return answer;
 }
 
 function glErr(gl) {
     var err = gl.getError();
     if (err!= 0) {
-        console.log("GL ERROR!");
-        console.error("WE HAVE a GL ERROR");
+        console.log("GL ERROR!" + err);
+        console.error("WE HAVE a GL ERROR " + err);
         throw new Error("gl-error");
     }
+}
+
+function native_com_sun_javafx_iio_web_WebImageLoader_initNativeLoading() {
+    console.log("[JS] WebImageLoader_initNativeLoading");
+}
+
+function native_com_sun_javafx_iio_web_WebImageLoader_disposeLoader() {
+    console.log("[JS] WebImageLoader_disposeLoader");
+}
+
+function native_com_sun_javafx_iio_web_WebImageLoader_loadImage() {
+    console.log("[JS] WebImageLoader_loadImage");
+    return 1;
 }
