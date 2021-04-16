@@ -9,7 +9,7 @@ public class Util {
         "  console.log('IN SCHEDULER, run '+r);\n" + 
         "  r.run__V();\n" +
         "  console.log('IN SCHEDULER, done with running '+r);\n" + 
-        "}, 100);\n"
+        "}, 50);\n"
     )
  public static native void schedule(Runnable r);
 
@@ -18,7 +18,7 @@ public class Util {
         "  console.log('IN Interval SCHEDULER, run '+r);\n" + 
         "  r.run__V();\n" +
         "  console.log('IN Interval SCHEDULER, done with running '+r);\n" + 
-        "}, 1000);\n"
+        "}, 10);\n"
     )
  public static native void interval(Runnable r);
 
