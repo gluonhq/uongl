@@ -471,6 +471,38 @@ function native_com_sun_prism_es2_GLContext_nTexParamsMinMax(min, max) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, param);
 }
 
+function native_com_sun_prism_es2_GLContext_nUniform1i(ptr, loc, v0) {
+    var gl = wgl();
+    gl.uniform1i(loc, v0);
+}
+
+function native_com_sun_prism_es2_GLContext_nUniform1f(ptr, loc, v0) {
+    var gl = wgl();
+    gl.uniform1f(loc, v0);
+}
+
+function native_com_sun_prism_es2_GLContext_nUniform2f(ptr, loc, v0, v1) {
+    var gl = wgl();
+    gl.uniform2f(loc, v0, v1);
+}
+
+function native_com_sun_prism_es2_GLContext_nUniform3f(ptr, loc, v0, v1, v2) {
+    var gl = wgl();
+    gl.uniform3f(loc, v0, v1, v2);
+}
+
+function native_com_sun_prism_es2_GLContext_nUniform4f(ptr, loc, v0, v1, v2, v3) {
+    var gl = wgl();
+    gl.uniform4f(loc, v0, v1, v2, v3);
+}
+
+function native_com_sun_prism_es2_GLContext_nUniform4fv1(ptr, loc, count, value, valueByteOffset) {
+    var gl = wgl();
+    console.log("[UONGL] nUniform4fv1 to "+loc+", "+count+", "+value+", "+valueByteOffset);
+    var rawFloatBuffer = new Float32Array(value, valueByteOffset, count);
+    gl.uniform4fv(loc, rawFloatBuffer);
+}
+
 // ------------
 // WEBGLCONTEXT 
 // ------------
