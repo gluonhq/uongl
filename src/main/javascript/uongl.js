@@ -1,5 +1,7 @@
 console.log("WELCOME UONGL!");
 
+
+
 var FLOATS_PER_TC=2 * 4;
 var FLOATS_PER_VC=3 * 4;
 var FLOATS_PER_VERT=(FLOATS_PER_TC * 2 + FLOATS_PER_VC);
@@ -8,10 +10,22 @@ var colorStride=4;
 
 var buffers = [];
 var bufferIdx = 0;
+var scissorEnabled = false;
+var depthWritesEnabled = false;
+
+var gl = null;
 
 function wgl() {
+    if (gl != null) {
+        return gl;
+    }
     var canvas = document.getElementById("jfxcanvas");
-    var gl = canvas.getContext("webgl2");
+    gl = canvas.getContext("webgl2");
+    function logGLCall(functionName, args) {
+       console.log("dbgl." + functionName + "(" +
+          WebGLDebugUtils.glFunctionArgsToString(functionName, args) + ")");
+    }
+    gl = WebGLDebugUtils.makeDebugContext(gl, undefined, logGLCall);
     return gl;
 }
 
@@ -24,6 +38,7 @@ function buff(p) {
 function native_com_sun_prism_es2_GLFactory_nIsGLExtensionSupported(ptr, a) {
     console.log("NISGLEXTENSIONSUPPOERTED!!! a = " + a);
    if (a == "GL_EXT_texture_format_BGRA8888") return false;
+   if (a == "GL_ARB_multisample") return false;
     console.log("assume true");
     return true;
 }
@@ -152,15 +167,40 @@ function native_com_sun_prism_es2_GLContext_nClearBuffers (ctxInfo,
         red, green, blue, alpha,
         clearColor, clearDepth, ignoreScissor){
 console.log("UONGL clearBuffers, cc = " + clearColor+", cd = " + clearDepth+", is = " + ignoreScissor);
-console.log("TODO!!!");
+
     var gl = wgl();
-    var clearBIT = null;
-    if (clearColor) {
-        gl.clearColor(1, green, blue, alpha);
-        clearBIT = gl.COLOR_BUFFER_BUT;
+    if (ignoreScissor && scissorEnabled) {
+console.log("Scissor enabled, but we will ignore it");
+        // glClear() honors the current scissor, so disable it
+        // temporarily if ignoreScissor is true
+        gl.disable(gl.SCISSOR_TEST);
+    } else {
+console.log("no Scissor action needed");
     }
-    if (clearBIT != null) {
+
+    var clearBIT = 0;
+    if (clearColor) {
+        clearBIT = gl.COLOR_BUFFER_BIT;
+        gl.clearColor(red, green, blue, alpha);
+    }
+
+    if (clearDepth) {
+        clearBIT  = clearBIT| gl.DEPTH_BUFFER_BIT;
+        // also make sure depth writes are enabled for the clear operation
+        if (depthWritesEnabled) {
+            glDepthMask(true);
+        }
         gl.clear(clearBIT);
+        if (depthWritesEnabled) {
+            glDepthMask(false);
+        }
+    } else {
+        gl.clear(clearBIT);
+    }
+
+    if (ignoreScissor && scissorEnabled) {
+console.log("Scissor enabled, but we ignored it, restore now");
+        gl.enable(gl.SCISSOR_TEST);
     }
     glErr(gl);
 }
@@ -259,14 +299,14 @@ function native_com_sun_prism_es2_GLContext_nDrawIndexedQuads(ptr, numVertices, 
     var rawFloatBuffer = new Float32Array(dataf);
     gl.bindBuffer(gl.ARRAY_BUFFER, floatBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, rawFloatBuffer, gl.STATIC_DRAW);
-    gl.vertexAttribPointer(0, 3, gl.FLOAT, gl.FALSE, coordStride, 0);
-    gl.vertexAttribPointer(2, 2, gl.FLOAT, gl.FALSE, coordStride, FLOATS_PER_VC);
-    gl.vertexAttribPointer(3, 2, gl.FLOAT, gl.FALSE, coordStride, (FLOATS_PER_VC + FLOATS_PER_TC));
+    gl.vertexAttribPointer(0, 3, gl.FLOAT, false, coordStride, 0);
+    gl.vertexAttribPointer(2, 2, gl.FLOAT, false, coordStride, FLOATS_PER_VC);
+    gl.vertexAttribPointer(3, 2, gl.FLOAT, false, coordStride, (FLOATS_PER_VC + FLOATS_PER_TC));
     var byteBuffer = gl.createBuffer();
     var rawByteBuffer = new Uint8Array(datab);
     gl.bindBuffer(gl.ARRAY_BUFFER, byteBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, rawByteBuffer, gl.STATIC_DRAW);
-    gl.vertexAttribPointer(1, 4, gl.UNSIGNED_BYTE, gl.TRUE, colorStride, 0);
+    gl.vertexAttribPointer(1, 4, gl.UNSIGNED_BYTE, true, colorStride, 0);
         // ctx->vbFloatData = pFloat;
 // ctx->vbByteData = pByte;
     var numQuads = numVertices/4;
@@ -326,6 +366,19 @@ function native_com_sun_prism_es2_GLContext_nPixelStorei(pname, value) {
     if (pname == 63) name = gl.UNPACK_SKIP_ROWS;
     gl.pixelStorei(name, value);
     glErr(gl);
+}
+
+function native_com_sun_prism_es2_GLContext_nScissorTest(ctx, enable, x, y, w, h) {
+    console.log("scissortest, enable = " + enable+", x = " + x);
+    var gl = wgl();
+    if (enable == 1) {
+        gl.enable(gl.SCISSOR_TEST);
+        gl.scissor(x, y, w, h);
+        scissorEnabled = true;
+    } else {
+        gl.disable(gl.SCISSOR_TEST);
+        scissorEnabled = false;
+    }
 }
 
 function native_com_sun_prism_es2_GLContext_nSetIndexBuffer(ptr, bufferId ) {
@@ -395,13 +448,59 @@ function native_com_sun_prism_es2_GLContext_nUseProgram(ptr, programId ) {
     glErr(gl);
 }
 
-function native_com_sun_prism_es2_GLContext_nTexSubImage2D0() {
-    console.log("[UONGL] nTexSubImage2D0 NOT IMPLEMENTED ");
+function native_com_sun_prism_es2_GLContext_nTexSubImage2D0(target, level,
+        xoffset, yoffset, width, height, format, type, pixels, pixelsByteOffset) {
+    var gl = wgl();
+    var ptr = pixels.fld_java_nio_ByteBuffer_data;
+    var rawUInt8Buffer = new Uint8Array(ptr);
+    var gFormat = getConstant(format);
+    var gTarget = getConstant(target);
+    var gType = getConstant(type);
+    gl.texSubImage2D(gTarget,  level,
+            xoffset, yoffset,
+            width, height, gFormat,
+            gType, rawUInt8Buffer);
 }
 
 
-function native_com_sun_prism_es2_GLContext_nTexParamsMinMax() {
-    console.log("[UONGL] nTexParamsMinMax NOT IMPLEMENTED");
+function native_com_sun_prism_es2_GLContext_nTexParamsMinMax(min, max) {
+    var gl = wgl();
+    var param = getConstant(min);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, param);
+    param = getConstant(max);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, param);
+}
+
+function native_com_sun_prism_es2_GLContext_nUniform1i(ptr, loc, v0) {
+    var gl = wgl();
+    gl.uniform1i(loc, v0);
+}
+
+function native_com_sun_prism_es2_GLContext_nUniform1f(ptr, loc, v0) {
+    var gl = wgl();
+    gl.uniform1f(loc, v0);
+}
+
+function native_com_sun_prism_es2_GLContext_nUniform2f(ptr, loc, v0, v1) {
+    var gl = wgl();
+    gl.uniform2f(loc, v0, v1);
+}
+
+function native_com_sun_prism_es2_GLContext_nUniform3f(ptr, loc, v0, v1, v2) {
+    var gl = wgl();
+    gl.uniform3f(loc, v0, v1, v2);
+}
+
+function native_com_sun_prism_es2_GLContext_nUniform4f(ptr, loc, v0, v1, v2, v3) {
+    var gl = wgl();
+    gl.uniform4f(loc, v0, v1, v2, v3);
+}
+
+function native_com_sun_prism_es2_GLContext_nUniform4fv1(ptr, loc, count, value, valueByteOffset) {
+    var gl = wgl();
+    console.log("[UONGL] nUniform4fv1 to "+loc+", "+count+", "+value+", "+valueByteOffset);
+    var rawFloatBuffer = new Float32Array(value, valueByteOffset, count);
+    gl.uniform4fv(loc, rawFloatBuffer);
 }
 
 // ------------
@@ -443,7 +542,14 @@ function native_com_sun_prism_es2_WebGLContext_nGetNativeHandle(nativeCtxInfo) {
 
 function native_com_sun_prism_es2_WebGLContext_nInitialize(nativeDInfo, nativePFInfo,
             nativeshareCtxHandle, vSyncRequest) {
-    console.log("[UONGL] WebGLContext_nInitialize always return 1");
+    console.log("[UONGL] WebGLContext_nInitialize init and then return 1");
+    var gl = wgl();
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.depthMask(false);
+    gl.disable(gl.DEPTH_TEST);
+    gl.clearColor(0,0,0,0);
+    glErr(gl);
     return 1;
 }
 
@@ -453,6 +559,7 @@ function native_com_sun_prism_es2_WebGLContext_nMakeCurrent() {
 
 function getConstant(src) {
     var gl = wgl();
+    var answer = -1;
     if (src ==0) return gl.ZERO;
     if (src ==1) return gl.ONE;
     if (src ==2) return gl.SRC_COLOR;
@@ -470,10 +577,11 @@ function getConstant(src) {
     if (src ==14) return gl.SRC_ALPHA_SATURATE;
     if (src == 20) return gl.FLOAT;
     if (src == 21) return gl.UNSIGNED_BYTE;
-    if (src == 22) return gl.UNSIGNED_INT_8_8_8_8_REV;
+    // if (src == 22) return gl.UNSIGNED_INT_8_8_8_8_REV;
+    if (src == 22) return gl.UNSIGNED_INT_2_10_10_10_REV;
     if (src == 23) return gl.UNSIGNED_INT_8_8_8_8;
     if (src == 40) return gl.RGBA;
-    if (src == 41) return gl.BGRA;
+    if (src == 41) answer = gl.BGRA;
     if (src == 42) return gl.RGB;
     if (src == 43) return gl.LUMINANCE;
     if (src == 44) return gl.ALPHA;
@@ -485,14 +593,27 @@ function getConstant(src) {
     if (src == 54) return gl.NEAREST_MIPMAP_NEAREST;
     if (src == 55) return gl.LINEAR_MIPMAP_LINEAR;
     console.log("NO TEXTURE CONSTANT FOUND for "+src);
-    return -1;
+    return answer;
 }
 
 function glErr(gl) {
     var err = gl.getError();
     if (err!= 0) {
-        console.log("GL ERROR!");
-        console.error("WE HAVE a GL ERROR");
+        console.log("GL ERROR!" + err);
+        console.error("WE HAVE a GL ERROR " + err);
         throw new Error("gl-error");
     }
+}
+
+function native_com_sun_javafx_iio_web_WebImageLoader_initNativeLoading() {
+    console.log("[JS] WebImageLoader_initNativeLoading");
+}
+
+function native_com_sun_javafx_iio_web_WebImageLoader_disposeLoader() {
+    console.log("[JS] WebImageLoader_disposeLoader");
+}
+
+function native_com_sun_javafx_iio_web_WebImageLoader_loadImage() {
+    console.log("[JS] WebImageLoader_loadImage");
+    return 1;
 }
