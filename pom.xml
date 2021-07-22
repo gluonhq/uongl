@@ -4,7 +4,7 @@
 
     <groupId>com.gluonhq</groupId>
     <artifactId>webscheduler</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.0.1</version>
     <packaging>jar</packaging>
 
     <name>webscheduler</name>
@@ -15,7 +15,7 @@
         <maven.compiler.target>11</maven.compiler.target>
         <client.plugin.version>0.1.30</client.plugin.version>
         <mainClassName>com.gluonhq.webscheduler.Main</mainClassName>
-        <aot.version>1.0-gvm-2</aot.version>
+        <aot.version>1.0-SNAPSHOT</aot.version>
     </properties>
 
     <dependencies>
@@ -94,13 +94,11 @@
         </pluginRepository>
     </pluginRepositories>
     <distributionManagement>
- <repository>
-    <id>gluon-nexus</id>
-    <url>https://nexus.gluonhq.com/nexus/content/repositories/releases/</url>
-</repository>
-
+      <repository>
+        <id>gluon-nexus</id>
+        <url>https://nexus.gluonhq.com/nexus/content/repositories/releases/</url>
+      </repository>
     </distributionManagement>
-
 
 
 </project>
