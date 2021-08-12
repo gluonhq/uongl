@@ -35,6 +35,22 @@ function buff(p) {
     return bufferIdx;
 }
 
+function native_com_sun_prism_es2_GLFactory_nGetGLVendor(ptr) {
+    console.log("nGetGLVendor asked");
+    return "GluonWebGL";
+}
+
+function native_com_sun_prism_es2_GLFactory_nGetGLRenderer(ptr) {
+    console.log("nGetGLRenderer asked");
+    return "GluonWebRenderer";
+}
+
+function native_com_sun_prism_es2_GLFactory_nGetGLVersion(ptr) {
+    console.log("nGetGLVersion asked");
+    return "GluonWebVersion";
+}
+
+// COVERED
 function native_com_sun_prism_es2_GLFactory_nIsGLExtensionSupported(ptr, a) {
     console.log("NISGLEXTENSIONSUPPOERTED!!! a = " + a);
    if (a == "GL_EXT_texture_format_BGRA8888") return false;
@@ -129,6 +145,7 @@ function native_com_sun_glass_ui_web_WebGLView__setParent(ptr, parentptr) {
 // GLCONTEXT 
 // ------------
 
+// COVERED
 function native_com_sun_prism_es2_GLContext_nActiveTexture(ptr, texUnit) {
     console.log("[UONGL] nActiveTexture ctx = "+ptr+", id = "+texUnit);
     var gl = wgl();
@@ -136,6 +153,7 @@ function native_com_sun_prism_es2_GLContext_nActiveTexture(ptr, texUnit) {
     glErr(gl);
 }
 
+// COVERED
 function native_com_sun_prism_es2_GLContext_nBindFBO(nativeCtxInfo, nativeFBOID) {
     console.log("[UONGL] nBindFBO ctx = "+nativeCtxInfo+", id = "+nativeFBOID);
     var gl = wgl();
@@ -148,6 +166,7 @@ function native_com_sun_prism_es2_GLContext_nBindFBO(nativeCtxInfo, nativeFBOID)
     glErr(gl);
 }
 
+// COVERED
 function native_com_sun_prism_es2_GLContext_nBindTexture(nativeCtxInfo, texId) {
 console.log("UONGL bindTexture with id "+texId);
     var gl = wgl();
@@ -156,6 +175,7 @@ console.log("UONGL bindTexture with id "+texId);
     glErr(gl);
 }
 
+// COVERED
 function native_com_sun_prism_es2_GLContext_nBlendFunc(cf, df) {
 console.log("UONGL bbendFunv with c = "+cf+" and d = " + df);
     var gl = wgl();
@@ -163,6 +183,7 @@ console.log("UONGL bbendFunv with c = "+cf+" and d = " + df);
     glErr(gl);
 }
 
+// COVERED
 function native_com_sun_prism_es2_GLContext_nClearBuffers (ctxInfo,
         red, green, blue, alpha,
         clearColor, clearDepth, ignoreScissor){
@@ -205,6 +226,7 @@ console.log("Scissor enabled, but we ignored it, restore now");
     glErr(gl);
 }
 
+// COVERED
 function native_com_sun_prism_es2_GLContext_nCompileShader(ptr, src, vert) {
     console.log("[UONGL] compile shader \n"+src);
     var gl = wgl();
@@ -225,6 +247,7 @@ console.log("ERROR! " + msg);
     return answer;
 }
 
+// COVERED
 function native_com_sun_prism_es2_GLContext_nCreateFBO (ptr, texId) {
     console.log("[UONGL] ncreateFBO ");
     var gl = wgl();
@@ -238,6 +261,7 @@ console.log("[UONGL] createFBO will return buffer " + buffer);
     return answer;
 }
 
+// COVERED
 function native_com_sun_prism_es2_GLContext_nCreateIndexBuffer16 (ptr, data, n) {
     var gl = wgl();
     var buffer = gl.createBuffer();
@@ -252,6 +276,7 @@ function native_com_sun_prism_es2_GLContext_nCreateIndexBuffer16 (ptr, data, n) 
     return bufferIdx;
 }
 
+// COVERED
 function native_com_sun_prism_es2_GLContext_nCreateProgram(ptr, vertID, fragIDArr, numAttrs, attrs, indexs) {
     var gl = wgl();
     console.log("[UONGL] ncreateProgram");
@@ -278,6 +303,7 @@ console.log("[UONGL] bindAttribloc " + attrs[i]+" to " + indexs[i]);
     return answer;
 }
 
+// COVERED
 function native_com_sun_prism_es2_GLContext_nCreateTexture (ptr, width, height) {
     var gl = wgl();
     console.log("[UONGL] ncreateTexture w = "+width+", h = "+height);
@@ -292,6 +318,7 @@ function native_com_sun_prism_es2_GLContext_nCreateTexture (ptr, width, height) 
     return answer;
 }
 
+// COVERED
 function native_com_sun_prism_es2_GLContext_nDrawIndexedQuads(ptr, numVertices, dataf, datab) {
     var gl = wgl();
     console.log("[UONGL] nDrawIndexedQuads nv = "+numVertices+", df = " + dataf.length+", db = " + datab.length);
@@ -318,6 +345,7 @@ gl.drawElements(gl.TRIANGLES, numQuads * 2 * 3, gl.UNSIGNED_SHORT, 0);
 
 }
 
+// COVERED
 function native_com_sun_prism_es2_GLContext_nDisableVertexAttributes(ptr){
     var gl = wgl();
     for (i = 0; i < 4; i++) {
@@ -327,6 +355,7 @@ function native_com_sun_prism_es2_GLContext_nDisableVertexAttributes(ptr){
     glErr(gl);
 }
 
+// COVERED
 function native_com_sun_prism_es2_GLContext_nEnableVertexAttributes(ptr){
     var gl = wgl();
     for (i = 0; i < 4; i++) {
