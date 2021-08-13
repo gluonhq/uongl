@@ -96,10 +96,10 @@
         </pluginRepository>
     </pluginRepositories>
     <distributionManagement>
- <repository>
-    <id>gluon-nexus</id>
-    <url>https://nexus.gluonhq.com/nexus/content/repositories/releases/</url>
-</repository>
+    <repository>
+        <id>gluon-nexus</id>
+        <url>https://nexus.gluonhq.com/nexus/content/repositories/releases/</url>
+    </repository>
 
     </distributionManagement>
 

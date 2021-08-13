@@ -11,7 +11,7 @@ final class WebGLFactoryStub {
     public WebGLFactoryStub() {
     }
 
-    @JavaScriptBody(body = "console.info('SUBS - nGetISGL2 asked'); return true;",
+    @JavaScriptBody(body = "console.info('SUBS - nGetISGL2 asked, return false'); return false;",
                     args = "ptr")
     private static native boolean nGetIsGL2(long nativeCtxInfo);
 

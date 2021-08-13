@@ -73,7 +73,7 @@ static final class WebGLFactoryStub {
             = "window.setInterval(function() {\n"
             + "  console.log('[UONGL] IntervalScheduler [10Hz] will run '+r);\n"
             + "  r.run__V();\n"
-            + "}, 1000);\n"
+            + "}, 100);\n"
     )
     public static native void interval(Runnable r);
 
