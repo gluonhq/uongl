@@ -32,7 +32,8 @@ final class FridgeStub {
     private static native void setBckInnerText(String id, String text);
 
     @JavaScriptBody(body = "var divEl = document.getElementById(id);\n " +
-                           "var pleft = val+'px';\n" +
+                           "var totVal = val + document.getElementById('jfxcanvas').getBoundingClientRect().left;\n" +
+                           "var pleft = totVal+'px';\n" +
                            "divEl.style.left=pleft;\n",
                     args = {"id", "val"})
     private static native void setDivLeft(String id, float val);
