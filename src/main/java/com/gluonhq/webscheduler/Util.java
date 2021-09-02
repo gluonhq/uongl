@@ -46,6 +46,11 @@ public class Util {
     static WebGLViewStub webGLViewStub;
     static FridgeStub fridgeStub;
     static {
+        System.setProperty("prism.order", "es2");
+        System.setProperty("glass.platform", "Web");
+        System.setProperty("glass.disableThreadChecks", "true");
+        System.setProperty("java.vendor","bck2brwsr");
+
         Object patchThread = new TargetThread(); // this call initializes the `Thread.start()` and `Thread.currentThread()` hooks.
         System.out.println("[SUBS] thread.start has been patched");
         System.out.println("[SUBS] Patching " + GLFactory.class);
