@@ -1,15 +1,40 @@
+/*
+ * Copyright (c) 2021, Gluon
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL GLUON BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package com.gluonhq.webscheduler;
 
-import org.apidesign.bck2brwsr.core.JavaScriptBody;
-import org.apidesign.bck2brwsr.core.JavaScriptPrototype;
-import com.sun.prism.es2.WebGLContext;
-import com.sun.prism.es2.WebGLFactory;
+import com.sun.glass.ui.web.WebGLView;
+import com.sun.glass.ui.web.WebWindow;
+import com.sun.javafx.sg.web.Fridge;
 import com.sun.prism.es2.GLContext;
 import com.sun.prism.es2.GLFactory;
-import com.sun.glass.ui.web.WebWindow;
-import com.sun.glass.ui.web.WebGLView;
-import com.sun.javafx.sg.web.Fridge;
-
+import com.sun.prism.es2.WebGLContext;
+import com.sun.prism.es2.WebGLFactory;
+import org.apidesign.bck2brwsr.core.JavaScriptBody;
 
 public class Util {
 
@@ -21,6 +46,11 @@ public class Util {
     static WebGLViewStub webGLViewStub;
     static FridgeStub fridgeStub;
     static {
+        System.setProperty("prism.order", "es2");
+        System.setProperty("glass.platform", "Web");
+        System.setProperty("glass.disableThreadChecks", "true");
+        System.setProperty("java.vendor","bck2brwsr");
+
         Object patchThread = new TargetThread(); // this call initializes the `Thread.start()` and `Thread.currentThread()` hooks.
         System.out.println("[SUBS] thread.start has been patched");
         System.out.println("[SUBS] Patching " + GLFactory.class);
@@ -42,28 +72,9 @@ public class Util {
     public static void warmup() {
         System.out.println("[SUBS] warming up");
     }
-public static void uploadPixels(long ptr, int[] pixels, int offset, int width, int height) {
-}
 
-/*
-@JavaScriptPrototype(prototype = "", container = "vm.com_sun_prism_es2_WebGLFactory(false)")
-static final class WebGLFactoryStub {
-    public WebGLFactoryStub() {
+    public static void uploadPixels(long ptr, int[] pixels, int offset, int width, int height) {
     }
-
-    @JavaScriptBody(body = "console.info('SUBS - nGetISGL2 asked'); return true;",
-                    args = "ptr")
-    private static native boolean nGetIsGL2(long nativeCtxInfo);
-
-    @JavaScriptBody(body = "console.info('SUBS - getAdapterCount'); return 1;",
-                    args = {})
-    public static native int nGetAdapterCount();
-
-    @JavaScriptBody(body = "console.info('ISEXTSUP'); return true;",
-                    args = { "ctx", "str"})
-    public static native boolean nIsGLExtensionSupported(long nativeContextObject, String glExtStr);
-}
-*/
 
     @JavaScriptBody(args = "r", body
             = "window.setTimeout(function() {\n"
@@ -100,10 +111,12 @@ System.out.println("[SUBS] Thread.setDaemon called with " + b);
         public void setName(String s) {
 System.out.println("[SUBS] Thread.setName called, set name to " + s);
         }
-public final void checkAccess() {}
-public static void setDefaultUncaughtExceptionHandler(Thread.UncaughtExceptionHandler eh) {
-System.out.println("[SUBS] Thread.setDefaultUncaughtExceptionHandler called");
-}
+
+        public final void checkAccess() {}
+
+        public static void setDefaultUncaughtExceptionHandler(Thread.UncaughtExceptionHandler eh) {
+            System.out.println("[SUBS] Thread.setDefaultUncaughtExceptionHandler called");
+        }
 
         public void start() { // this method replaces the `Thread.start()` as soon as `TargetThread` constructor is called
             Thread self = (Thread) (Object) this;
