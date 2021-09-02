@@ -30,22 +30,26 @@ package com.gluonhq.webscheduler;
 import org.apidesign.bck2brwsr.core.JavaScriptBody;
 import org.apidesign.bck2brwsr.core.JavaScriptPrototype;
 
-@JavaScriptPrototype(prototype = "", container = "vm.com_sun_prism_es2_WebGLFactory(false)")
-final class WebGLFactoryStub {
+@JavaScriptPrototype(prototype = "", container = "vm.com_sun_prism_es2_GLFactory(false)")
+final class GLFactoryStub {
 
-    public WebGLFactoryStub() {
+    public GLFactoryStub() {
     }
 
-    @JavaScriptBody(body = "console.info('SUBS - nGetISGL2 asked, return false'); return false;",
-                    args = "ptr")
-    private static native boolean nGetIsGL2(long nativeCtxInfo);
+    @JavaScriptBody(body = "console.info('SUBS - nGetISGLext asked'); return native_com_sun_prism_es2_GLFactory_nIsGLExtensionSupported(ptr, a);",
+                    args = {"ptr", "a"})
+    private static native boolean nIsGLExtensionSupported(long nativeContextObject, String glExtStr);
 
-    @JavaScriptBody(body = "console.info('SUBS - getAdapterCount'); return 1;",
-                    args = {})
-    public static native int nGetAdapterCount();
+    @JavaScriptBody(body = "return 'Gluon WebGL Vendor';",
+                    args = {"ptr"})
+    private static native String nGetGLVendor(long nativeCtxInfo);
 
-    @JavaScriptBody(body = "console.info('ISEXTSUP'); return true;",
-                    args = { "ctx", "str"})
-    public static native boolean nIsGLExtensionSupported(long nativeContextObject, String glExtStr);
+    @JavaScriptBody(body = "return 'Gluon WebGL Renderer';",
+                    args = {"ptr"})
+    private static native String nGetGLRenderer(long nativeCtxInfo);
+
+    @JavaScriptBody(body = "return 'Gluon WebGL Version 1';",
+                    args = {"ptr"})
+    private static native String nGetGLVersion(long nativeCtxInfo);
 
 }
