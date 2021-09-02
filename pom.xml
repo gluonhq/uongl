@@ -14,8 +14,15 @@
         <maven.compiler.release>11</maven.compiler.release>
         <mainClassName>com.gluonhq.webscheduler.Main</mainClassName>
         <aot.version>0.51</aot.version>
-        <javafx.version>18-internal+0-2021-09-02-105232</javafx.version>
+        <javafx.version>18-internal+0-2021-09-02-165800</javafx.version>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>Gluon</id>
+            <url>https://nexus.gluonhq.com/nexus/content/repositories/releases</url>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
